@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from math import log
+
 def nbclassify(alpha):
     with open('vocabulary.txt') as vocabulary_file:
         vocabulary = vocabulary_file.read().split()
@@ -19,7 +21,7 @@ def nbclassify(alpha):
     n_y = [0] * n_newsgroup
     for i in range(n_train_data):
         n_y[train_labels[i] - 1] += 1
-    p_y = [x / float(n_train_data) for x in n_y]
+    p_y = [log(x / float(n_train_data)) for x in n_y]
     
     n_x_given_y = [[alpha] * n_vocabulary for i in range(n_newsgroup)]
     for data in train_data:
@@ -27,7 +29,7 @@ def nbclassify(alpha):
     p_x_given_y = []
     for y in n_x_given_y:
         sum_y = sum(y)
-        p_x_given_y.append([px / float(sum_y) for px in y])
+        p_x_given_y.append([log(px / float(sum_y)) for px in y])
     
     n_test_data = 0
     p_y_given_x = []
@@ -40,14 +42,9 @@ def nbclassify(alpha):
                 p_y_given_x.append(list(p_y))
             for j in range(current_line[2]):
                 for i in range(len((p_y_given_x[current_test_number -1]))):
-                    p_y_given_x[current_test_number - 1][i] *= \
+                    p_y_given_x[current_test_number - 1][i] += \
                             p_x_given_y[i][current_line[1] - 1] 
                 
-                norm_f = sum(p_y_given_x[current_test_number - 1], 0.0) / \
-                        len(p_y_given_x[current_test_number - 1])
-                p_y_given_x[current_test_number - 1] = [z / norm_f for z in \
-                        p_y_given_x[current_test_number - 1]]
-                        
     label_classified = [probs.index(max(probs)) + 1 for probs in p_y_given_x]
     
     with open('test.label', 'r') as test_label_file:
